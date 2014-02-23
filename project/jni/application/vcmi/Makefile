@@ -1,4 +1,3 @@
-
 $(shell mkdir -p AI debug/AI \
 	out/vcmi/lib out/vcmi/lib/logging out/vcmi/lib/filesystem \
 	out/vcmi/lib/mapping out/vcmi/lib/rmg out/vcmi/lib/minizip \
@@ -56,7 +55,7 @@ OBJS_ERM:=$(patsubst %.cpp, out/%.o, $(SOURCES_ERM))
 
 all: AndroidData/binaries.zip libapplication.so
 
-AndroidData/binaries.zip: libvcmi.so vcmiserver AI/libBattleAI.so AI/libStupidAI.so AI/libVCAI.so libicuuc.a libicudata.a # Scripting/libvcmiERM.so AI/libEmptyAI.so 
+AndroidData/binaries.zip: libvcmi.so vcmiserver AI/libBattleAI.so AI/libStupidAI.so AI/libVCAI.so # Scripting/libvcmiERM.so AI/libEmptyAI.so 
 	rm -f $@
 	zip -r $@ $^
 
@@ -65,10 +64,10 @@ $(OBJS_SERVER) $(OBJS_LIB) $(OBJS_LIB_FILESYSTEM) $(OBJS_LIB_LOGGING) $(OBJS_LIB
  $(OBJS_BATTLEAI) $(OBJS_STUPIDAI) $(OBJS_FUZZYLITE) $(OBJS_VCAI) $(OBJS_CLIENT) $(OBJS_ERM): out/%.o: %.cpp
 	env GCCVER=$(GCC_VERSION) ../setEnvironment-armeabi-v7a.sh sh -c \
 	"$(GCC_PREFIX)-g++ \
-	-c \$$CXXFLAGS -O1 -Ivcmi -I../../shmem -std=c++0x -Ivcmi/lib \
+	-c \$$CXXFLAGS -O1 -Ivcmi -isystem/home/xyz/Boost-for-Android2/build/include/boost-1_53/ -std=c++0x -Ivcmi/lib \
 	-DM_DATA_DIR=\\\".\\\" \
-	-DM_BIN_DIR=\\\"/data/data/eu.vcmi/files\\\" \
-	-DM_LIB_DIR=\\\"/data/data/eu.vcmi/files\\\" \
+	-DM_BIN_DIR=\\\"/data/data/is.xyz.vcmi/files\\\" \
+	-DM_LIB_DIR=\\\"/data/data/is.xyz.vcmi/files\\\" \
 	-Wstrict-aliasing -Wcast-align -Wpointer-arith -Waddress \
 	-D__SOURCE_FILE__=\\\"$<\\\" \
 	$< -o $@"
@@ -81,8 +80,8 @@ $(OBJS_MINIZIP): out/%.o: %.c
 	-Wstrict-aliasing -Wcast-align -Wpointer-arith -Waddress \
 	$< -o $@"
 
-LINK_BOOST_LIBS:=-L../../boost/lib/arm-linux-androideabi-4.6 \
-	-lboost_filesystem -lboost_iostreams -lboost_system -lboost_thread -lboost_program_options -lboost_locale -lgnustl_static -lshmem
+LINK_BOOST_LIBS:=-L/home/xyz/Boost-for-Android2/build/lib/ \
+	-lboost_filesystem -lboost_iostreams -lboost_system -lboost_thread -lboost_program_options -lgnustl_static
 
 LINK_ICU:=-L../../libiconv-libicu/armeabi-v7a \
         -licuuc -licudata
@@ -91,9 +90,9 @@ LINK_LIB= \
 	env BUILD_EXECUTABLE=1 NO_SHARED_LIBS=1 GCCVER=$(GCC_VERSION) ../setEnvironment-armeabi-v7a.sh sh -c \
 	"$(GCC_PREFIX)-g++ \
 	$^ -o $@ \
-	-shared \$$LDFLAGS -L. $(LINK_BOOST_LIBS) $(LINK_ICU) " && \
+	-shared \$$LDFLAGS -L. $(LINK_BOOST_LIBS) " && \
 	cp $@ debug/$@ && \
-	$(GCC_PREFIX)-strip $@
+	env BUILD_EXECUTABLE=1 NO_SHARED_LIBS=1 GCCVER=$(GCC_VERSION) ../setEnvironment-armeabi-v7a.sh $(GCC_PREFIX)-strip $@
 
 .PHONY: -lvcmi
 -lvcmi: libvcmi.so
@@ -127,7 +126,7 @@ vcmiserver: $(OBJS_SERVER) -lvcmi
 	$^ -o $@ \
 	\$$LDFLAGS -L. $(LINK_BOOST_LIBS)" && \
 	cp $@ debug/$@ && \
-	$(GCC_PREFIX)-strip $@
+	env BUILD_EXECUTABLE=1 NO_SHARED_LIBS=1 GCCVER=$(GCC_VERSION) ../setEnvironment-armeabi-v7a.sh $(GCC_PREFIX)-strip $@
 
 clean:
 	rm -rf out debug *.so vcmiserver* AndroidData/vcmiserver* libapplication.so AI Scripting
