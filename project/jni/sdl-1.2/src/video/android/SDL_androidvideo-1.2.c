@@ -46,6 +46,8 @@
 #include <string.h> // for memset()
 #include <dlfcn.h>
 
+#include <unistd.h>
+
 #define _THIS	SDL_VideoDevice *this
 
 #define DEBUGOUT(...)
@@ -1316,6 +1318,7 @@ void SDL_ANDROID_MultiThreadedVideoLoop()
 					ANDROID_VideoQuit(videoThread._this);
 					break;
 				case CMD_UPDATERECTS:
+#if 0
 					if( SDL_ANDROID_CompatibilityHacks ) // DIRTY HACK for MilkyTracker - DO NOT update screen when application requests that, update 50 ms later
 					{
 						if( nextUpdateDelay >= 100 )
@@ -1324,12 +1327,14 @@ void SDL_ANDROID_MultiThreadedVideoLoop()
 							nextUpdateDelay = lastUpdate + 50 - (int)SDL_GetTicks();
 					}
 					else
+#endif
 					{
 						ANDROID_FlipHWSurfaceInternal(videoThread.numrects, videoThread.rects);
 						swapBuffersNeeded = 1;
 					}
 					break;
 				case CMD_FLIP:
+#if 0
 					if( SDL_ANDROID_CompatibilityHacks ) // DIRTY HACK for MilkyTracker - DO NOT update screen when application requests that, update 50 ms later
 					{
 						if( nextUpdateDelay >= 100 )
@@ -1338,6 +1343,7 @@ void SDL_ANDROID_MultiThreadedVideoLoop()
 							nextUpdateDelay = lastUpdate + 50 - (int)SDL_GetTicks();
 					}
 					else
+#endif
 					{
 						ANDROID_FlipHWSurfaceInternal(0, NULL);
 						swapBuffersNeeded = 1;

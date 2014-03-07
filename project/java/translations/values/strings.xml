@@ -178,4 +178,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
+    <string name="quit">Quit</string>
+    <string name="show_help">Show me how to install it!</string>
+
 </resources>

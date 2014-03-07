@@ -78,6 +78,10 @@ import android.view.Display;
 import android.text.InputType;
 import android.util.Log;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.net.Uri;
+
 public class MainActivity extends Activity
 {
 	@Override
@@ -113,6 +117,7 @@ public class MainActivity extends Activity
 		if( Globals.StartupMenuButtonTimeout > 0 )
 		{
 			_btn = new Button(this);
+			_btn.setEnabled(false);
 			_btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 			_btn.setText(getResources().getString(R.string.device_change_cfg));
 			class onClickListener implements View.OnClickListener
@@ -185,12 +190,18 @@ public class MainActivity extends Activity
 							Settings.Load(Parent);
 							loaded.release();
 							loadedLibraries.release();
+							if (_btn != null)
+								_btn.setEnabled(true);
 						}
 					}
 					Callback2 cb = new Callback2();
 					cb.Parent = p;
 					p.runOnUiThread(cb);
 					loaded.acquireUninterruptibly();
+
+					Log.i("SDL", "Setting $HOME to " + Globals.DataDir);
+					Settings.nativeSetEnv("HOME", Globals.DataDir);
+
 					if(!Globals.CompatibilityHacksStaticInit)
 						p.LoadApplicationLibrary(p);
 				}
@@ -257,8 +268,41 @@ public class MainActivity extends Activity
 		this.runOnUiThread(cb);
 	}
 
+	public void TerminateWithDialog(String message)
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		// Add the buttons
+		builder.setPositiveButton(R.string.show_help, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://vcmi.xyz.is/installation.html"));
+				startActivity(browserIntent);
+				System.exit(0);
+			}
+		});
+		builder.setNegativeButton(R.string.quit, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				System.exit(0);
+			}
+		});
+		builder.setMessage(message + " Are you sure you installed VCMI correctly?\n\nVCMI for Android will now terminate.\n\nNote: VCMI data files should be installed to " + Globals.DataDir);
+
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
+
 	public void initSDL()
 	{
+		File VCMIRoot = new File(Globals.DataDir);
+		String filesToCheck[] = {"config/filesystem.json", "Data", "Mods/vcmi/mod.json"};
+		for (String s : filesToCheck) {
+			File t = new File(VCMIRoot, s);
+			if (!t.exists()) {
+				TerminateWithDialog("'" + s + "' not found.");
+				return;
+			}
+		}
+
+		Log.i("SDL", "VCMI should be in " + Globals.DataDir);
 		(new Thread(new Runnable()
 		{
 			public void run()
